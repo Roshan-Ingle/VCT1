@@ -1,0 +1,15 @@
+{
+  "name": "VCT 1",
+  "short_name": "VCT 1",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#141218",
+  "theme_color": "#D0BCFF",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/25/25231.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
