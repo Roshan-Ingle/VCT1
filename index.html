@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- STRICT SECURITY POLICY -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';">
+    <title>Vibe code tool 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Material You (MD3) Dark Theme Tokens */
+        :root {
+            --md-sys-color-background: #141218;
+            --md-sys-color-surface: #2B2930;
+            --md-sys-color-surface-variant: #49454F;
+            --md-sys-color-on-surface: #E6E0E9;
+            --md-sys-color-on-surface-variant: #CAC4D0;
+            --md-sys-color-primary: #D0BCFF;
+            --md-sys-color-on-primary: #381E72;
+            --md-sys-color-outline: #938F99;
+            --md-sys-color-outline-variant: #49454F;
+            --md-sys-color-error: #FFB4AB;
+            --md-sys-color-success: #81C784;
+        }
+
+        body { 
+            font-family: 'Roboto', -apple-system, sans-serif; 
+            margin: 0; 
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-surface); 
+            padding: clamp(16px, 4vw, 32px) 16px;
+            box-sizing: border-box;
+        }
+
+        .card { 
+            background-color: var(--md-sys-color-surface); 
+            padding: 32px 24px; 
+            border-radius: 28px; 
+            width: 100%; 
+            max-width: 440px; 
+            box-shadow: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        h2 { margin: 0 0 24px 0; font-size: 24px; font-weight: 500; color: var(--md-sys-color-on-surface); text-align: center; }
+
+        /* Tabs */
+        .tab-container { display: flex; background: var(--md-sys-color-surface-variant); border-radius: 100px; padding: 4px; margin-bottom: 24px; }
+        .tab-btn { flex: 1; background: transparent; color: var(--md-sys-color-on-surface-variant); height: 40px; border-radius: 100px; font-size: 14px; font-weight: 500; margin: 0; transition: all 0.2s ease; border:none; cursor:pointer;}
+        .tab-btn.active { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Inputs */
+        .input-group { margin-bottom: 20px; position: relative; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
+        
+        input[type="password"], input[type="text"] { 
+            width: 100%; height: 56px; padding: 0 16px; background: transparent; 
+            border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-on-surface); 
+            border-radius: 16px; box-sizing: border-box; font-size: 16px;
+            transition: border-color 0.2s; font-family: inherit;
+        }
+        input:focus { outline: none; border-color: var(--md-sys-color-primary); border-width: 2px; padding: 0 15px; }
+        input:disabled { border-color: var(--md-sys-color-outline-variant); color: var(--md-sys-color-outline-variant); cursor: not-allowed; }
+
+        #searchBar { height: 48px; border-radius: 24px; margin-bottom: 16px; border: none; background: rgba(230, 224, 233, 0.08); }
+        #searchBar:focus { background: rgba(230, 224, 233, 0.12); border: none; padding: 0 16px;}
+
+        .file-upload-wrapper {
+            position: relative; width: 100%; height: 56px; border: 1px dashed var(--md-sys-color-outline);
+            border-radius: 16px; display: flex; align-items: center; padding: 0 16px;
+            box-sizing: border-box; cursor: pointer;
+        }
+        .file-upload-text { color: var(--md-sys-color-on-surface-variant); font-size: 16px; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0; }
+
+        /* Buttons */
+        .btn-primary { 
+            width: 100%; height: 56px; background-color: var(--md-sys-color-primary); 
+            color: var(--md-sys-color-on-primary); border: none; border-radius: 100px; 
+            font-weight: 500; cursor: pointer; font-size: 14px; margin-top: 12px;
+            transition: transform 0.1s; font-family: inherit;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { background-color: rgba(226, 226, 226, 0.12); color: rgba(226, 226, 226, 0.38); cursor: not-allowed; transform: none; }
+
+        /* Manager List UI */
+        .repo-list { max-height: 350px; overflow-y: auto; padding-right: 4px; }
+        .repo-list::-webkit-scrollbar { width: 4px; }
+        .repo-list::-webkit-scrollbar-thumb { background: var(--md-sys-color-outline-variant); border-radius: 4px; }
+        
+        .repo-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px; background: rgba(230, 224, 233, 0.05);
+            border-radius: 16px; margin-bottom: 8px; border: 1px solid transparent;
+        }
+        .repo-info h4 { margin: 0 0 4px 0; font-size: 15px; font-weight: 500; color: var(--md-sys-color-on-surface); word-break: break-all;}
+        .repo-info p { margin: 0; font-size: 12px; color: var(--md-sys-color-on-surface-variant); }
+        
+        .action-row { display: flex; gap: 8px; }
+        .icon-btn { 
+            background: transparent; border: 1px solid var(--md-sys-color-outline-variant);
+            color: var(--md-sys-color-on-surface); width: 36px; height: 36px; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: background 0.2s; padding: 0; font-size: 14px;
+        }
+        .icon-btn:hover { background: rgba(230, 224, 233, 0.1); }
+        .icon-btn.danger { color: var(--md-sys-color-error); border-color: rgba(255, 180, 171, 0.3); }
+
+        /* Logs & Success */
+        #log, #manageLog { margin-top: 24px; font-size: 14px; color: var(--md-sys-color-on-surface-variant); line-height: 2; text-align: center;}
+        .step { display: flex; align-items: center; justify-content: center; gap: 8px; animation: fadeIn 0.3s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .success-box { background-color: rgba(129, 199, 132, 0.1); padding: 24px; border-radius: 16px; text-align: center; margin-top: 16px; }
+        .success-link { color: var(--md-sys-color-primary); font-weight: 500; text-decoration: none; font-size: 16px; display: inline-block; margin: 16px 0 0 0; padding: 12px 24px; background-color: rgba(208, 188, 255, 0.1); border-radius: 100px; }
+        .timer-text { font-size: 16px; font-weight: 500; color: var(--md-sys-color-primary); margin: 10px 0; display: block; }
+
+        /* Footer */
+        .footer { margin-top: 24px; font-size: 14px; font-weight: 400; color: var(--md-sys-color-on-surface-variant); text-align: center; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Vibe Code tool 1</h2>
+    
+    <div class="input-group">
+        <label>Personal Access Token</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+    </div>
+
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="switchTab('deploy')">Deploy Site</button>
+        <button class="tab-btn" onclick="switchTab('manage')">Manage Repos</button>
+    </div>
+
+    <!-- TAB 1: DEPLOY -->
+    <div id="deployTab" class="tab-content active">
+        <div class="input-group">
+            <label>Repository Name</label>
+            <input type="text" id="repoName" placeholder="my-instant-site">
+        </div>
+        
+        <div class="input-group">
+            <label>Index File</label>
+            <div class="file-upload-wrapper" id="fileWrapper">
+                <span class="file-upload-text" id="fileText">Tap to select HTML file</span>
+                <input type="file" id="fileInput" accept=".html" onchange="updateFileName()">
+            </div>
+        </div>
+        
+        <button id="goBtn" class="btn-primary" onclick="runDeployment()">Launch</button>
+        <div id="log"></div>
+    </div>
+
+    <!-- TAB 2: MANAGE REPOS -->
+    <div id="manageTab" class="tab-content">
+        <button id="loadBtn" class="btn-primary" onclick="fetchRepos()" style="margin-top: 0; margin-bottom: 16px;">Load Repositories</button>
+        <input type="text" id="searchBar" placeholder="Search repositories..." onkeyup="filterRepos()" style="display:none;">
+        
+        <!-- Hidden file input specifically for updating sites -->
+        <input type="file" id="hiddenUpdateFile" accept=".html" onchange="handleUpdateFileSelect(event)" style="display:none;">
+        
+        <div class="repo-list" id="repoList"></div>
+        <div id="manageLog"></div>
+    </div>
+</div>
+
+<div class="footer">by Roshan Ingle</div>
+
+<script>
+    // --- UI LOGIC ---
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        if (tab === 'deploy') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('deployTab').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('manageTab').classList.add('active');
+        }
+    }
+
+    function updateFileName() {
+        const fileInput = document.getElementById('fileInput');
+        const fileText = document.getElementById('fileText');
+        const fileWrapper = document.getElementById('fileWrapper');
+        
+        if (fileInput.files.length > 0) {
+            fileText.textContent = fileInput.files[0].name;
+            fileText.style.color = 'var(--md-sys-color-on-surface)';
+            fileWrapper.style.borderColor = 'var(--md-sys-color-primary)';
+            fileWrapper.style.backgroundColor = 'rgba(208, 188, 255, 0.08)';
+        } else {
+            fileText.textContent = `Tap to select HTML file`;
+            fileText.style.color = 'var(--md-sys-color-on-surface-variant)';
+            fileWrapper.style.borderColor = 'var(--md-sys-color-outline)';
+            fileWrapper.style.backgroundColor = 'transparent';
+        }
+    }
+
+    const escapeHTML = (str) => str.replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag]));
+
+    // --- CRYPTOGRAPHIC MEMORY VAULT ---
+    const EphemeralVault = {
+        key: null, iv: null,
+        async init() {
+            this.key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+            this.iv = crypto.getRandomValues(new Uint8Array(12));
+        },
+        async encrypt(text) {
+            const encoded = new TextEncoder().encode(text);
+            return await crypto.subtle.encrypt({ name: "AES-GCM", iv: this.iv }, this.key, encoded);
+        },
+        async decrypt(buffer) {
+            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: this.iv }, this.key, buffer);
+            return new TextDecoder().decode(decrypted);
+        }
+    };
+    EphemeralVault.init();
+
+    let globalEncryptedToken = null;
+
+    async function secureGetToken() {
+        const tokenInput = document.getElementById('ghToken');
+        const rawToken = tokenInput.value.trim();
+        
+        if (rawToken && !tokenInput.disabled) {
+            globalEncryptedToken = await EphemeralVault.encrypt(rawToken);
+            tokenInput.value = ""; 
+            tokenInput.placeholder = "••••••••••••••••••••";
+            tokenInput.disabled = true; 
+        }
+        if (!globalEncryptedToken) throw new Error("Please enter your GitHub Token.");
+        return await EphemeralVault.decrypt(globalEncryptedToken);
+    }
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // ==========================================
+    // TAB 1: DEPLOYMENT LOGIC
+    // ==========================================
+    async function runDeployment() {
+        const repoName = document.getElementById('repoName').value.trim();
+        const fileInput = document.getElementById('fileInput');
+        const log = document.getElementById('log');
+        const btn = document.getElementById('goBtn');
+
+        if (!repoName) return alert("Please enter a repository name.");
+        if (!fileInput.files[0]) return alert("Please select an HTML file.");
+
+        let token;
+        try { token = await secureGetToken(); } catch (e) { return alert(e.message); }
+
+        btn.disabled = true; btn.innerHTML = "Working..."; log.innerHTML = ''; 
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onerror = () => { alert("Error reading file."); btn.disabled = false; btn.innerHTML = "Launch"; };
+        reader.onload = async (e) => {
+            const content = e.target.result;
+            const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+            try {
+                log.innerHTML += '<div class="step">Creating repository...</div>';
+                const repoRes = await fetch('https://api.github.com/user/repos', {
+                    method: 'POST', headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json', 'X-GitHub-Api-Version': '2022-11-28' },
+                    body: JSON.stringify({ name: repoName, auto_init: true })
+                });
+                
+                const repoData = await repoRes.json();
+                if (!repoRes.ok) throw new Error(repoData.message || "Failed to create repository.");
+                
+                const owner = repoData.owner.login;
+                const defaultBranch = repoData.default_branch || "main";
+
+                log.innerHTML += '<div class="step">Synchronizing...</div>';
+                await sleep(3500); 
+
+                log.innerHTML += '<div class="step">Uploading file...</div>';
+                const uploadRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/index.html`, {
+                    method: 'PUT', headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json', 'X-GitHub-Api-Version': '2022-11-28' },
+                    body: JSON.stringify({ message: "Deployed via Flash Deploy", content: base64Content })
+                });
+
+                if (!uploadRes.ok) throw new Error((await uploadRes.json()).message || "Failed to upload file.");
+                await sleep(2500); 
+
+                log.innerHTML += '<div class="step">Configuring Pages...</div>';
+                const pagesRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/pages`, {
+                    method: 'POST', headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+                    body: JSON.stringify({ build_type: "legacy", source: { branch: defaultBranch, path: "/" } })
+                });
+
+                if (!pagesRes.ok) {
+                    const errData = await pagesRes.json();
+                    if (errData.message !== "GitHub Pages is already configured.") throw new Error(errData.message || "Failed to configure Pages.");
+                }
+
+                btn.innerHTML = "Finalizing...";
+                log.innerHTML = `
+                    <div class="success-box" id="resultBox">
+                        <h3 style="margin:0; font-weight:500; color:var(--md-sys-color-on-surface);">Building Site</h3>
+                        <p style="font-size: 13px; margin: 4px 0 0 0; color:var(--md-sys-color-on-surface-variant);">Waiting for GitHub servers...</p>
+                        <span class="timer-text" id="pollingStatus">Checking status... 0s</span>
+                    </div>`;
+
+                let secondsElapsed = 0;
+                const timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    const statusEl = document.getElementById('pollingStatus');
+                    if (statusEl) statusEl.textContent = `Checking status... ${secondsElapsed}s`;
+                }, 1000);
+
+                let isLive = false; let attempts = 0;
+                while (!isLive && attempts < 30) {
+                    await sleep(3000); attempts++;
+                    try {
+                        const buildRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/pages/builds/latest`, {
+                            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
+                        });
+                        if (buildRes.ok) {
+                            const buildData = await buildRes.json();
+                            if (buildData.status === 'built') isLive = true;
+                            else if (buildData.status === 'errored') { clearInterval(timerInterval); throw new Error("GitHub Pages build encountered an error."); }
+                        }
+                    } catch (pollErr) { if (pollErr.message.includes("error")) throw pollErr; }
+                }
+                
+                clearInterval(timerInterval);
+                const siteUrl = encodeURI(`https://${owner}.github.io/${repoName}/`);
+                btn.innerHTML = "Deployment Complete";
+                
+                const resultBox = document.getElementById('resultBox');
+                if (resultBox) {
+                    resultBox.innerHTML = `
+                        <h3 style="margin:0 0 4px 0; font-weight:500; color:var(--md-sys-color-on-surface);">${isLive ? 'Ready' : 'Almost Ready'}</h3>
+                        <p style="font-size: 13px; margin: 0; color:var(--md-sys-color-on-surface-variant);">${isLive ? `Your website built in ${secondsElapsed} seconds.` : `Taking longer than usual, but link is ready.`}</p>
+                        <a href="${siteUrl}" class="success-link" target="_blank">Open Website</a>
+                    `;
+                }
+            } catch (err) {
+                const errorDiv = document.createElement('div'); errorDiv.className = 'step'; errorDiv.style.color = 'var(--md-sys-color-error)';
+                errorDiv.style.marginTop = '12px'; errorDiv.textContent = err.name === 'TypeError' ? "Network connection failed." : err.message;
+                log.appendChild(errorDiv);
+                btn.disabled = false; btn.innerHTML = "Try Again"; token = null; 
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // ==========================================
+    // TAB 2: REPOSITORY MANAGER & UPDATER LOGIC
+    // ==========================================
+    let cachedRepos = [];
+    let githubOwner = "";
+    let activeUpdateRepo = "";
+    let activeUpdateHasPages = false;
+
+    async function fetchRepos() {
+        const btn = document.getElementById('loadBtn');
+        const log = document.getElementById('manageLog');
+        const list = document.getElementById('repoList');
+        const search = document.getElementById('searchBar');
+
+        try {
+            const token = await secureGetToken();
+            btn.innerHTML = "Fetching..."; btn.disabled = true;
+            log.textContent = ""; list.innerHTML = "";
+            
+            const userRes = await fetch('https://api.github.com/user', { headers: { 'Authorization': `token ${token}` } });
+            if (!userRes.ok) throw new Error("Invalid token.");
+            githubOwner = (await userRes.json()).login;
+
+            const repoRes = await fetch(`https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner`, {
+                headers: { 'Authorization': `token ${token}`, 'X-GitHub-Api-Version': '2022-11-28' }
+            });
+            if (!repoRes.ok) throw new Error("Failed to fetch repositories.");
+            
+            cachedRepos = await repoRes.json();
+            renderRepos(cachedRepos);
+            
+            btn.style.display = "none"; search.style.display = "block"; 
+        } catch (err) {
+            log.style.color = "var(--md-sys-color-error)";
+            log.textContent = err.name === 'TypeError' ? "Network error." : err.message;
+            btn.innerHTML = "Load Repositories"; btn.disabled = false;
+        }
+    }
+
+    function filterRepos() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        renderRepos(cachedRepos.filter(r => r.name.toLowerCase().includes(query)));
+    }
+
+    function renderRepos(repos) {
+        const list = document.getElementById('repoList');
+        list.innerHTML = "";
+        
+        if (repos.length === 0) {
+            list.innerHTML = `<p style="text-align:center; color:var(--md-sys-color-on-surface-variant); font-size:14px;">No repositories found.</p>`;
+            return;
+        }
+
+        repos.forEach(repo => {
+            const isPages = repo.has_pages ? '🌐 Pages Active' : '📦 Code Repo';
+            const html = `
+                <div class="repo-item" id="repo-${repo.name}">
+                    <div class="repo-info">
+                        <h4>${escapeHTML(repo.name)}</h4>
+                        <p>${isPages}</p>
+                    </div>
+                    <div class="action-row">
+                        <button class="icon-btn" onclick="triggerUpdate('${escapeHTML(repo.name)}', ${repo.has_pages})" title="Update index.html">⬆️</button>
+                        <button class="icon-btn" onclick="renameRepo('${escapeHTML(repo.name)}')" title="Rename Repo">✏️</button>
+                        ${repo.has_pages ? `<button class="icon-btn" onclick="unpublishRepo('${escapeHTML(repo.name)}')" title="Unpublish Pages">🚫</button>` : ''}
+                        <button class="icon-btn danger" onclick="deleteRepo('${escapeHTML(repo.name)}')" title="Delete Repo">🗑️</button>
+                    </div>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // --- UPDATE LIVE SITE LOGIC ---
+    function triggerUpdate(repoName, hasPages) {
+        activeUpdateRepo = repoName;
+        activeUpdateHasPages = hasPages;
+        const fileInput = document.getElementById('hiddenUpdateFile');
+        fileInput.value = ""; // Reset input so same file can trigger change
+        fileInput.click();
+    }
+
+    async function handleUpdateFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file || !activeUpdateRepo) return;
+
+        const log = document.getElementById('manageLog');
+        log.innerHTML = `<div class="step">Reading file...</div>`;
+
+        let token;
+        try { token = await secureGetToken(); } catch (e) { return alert(e.message); }
+
+        const reader = new FileReader();
+        reader.onerror = () => { log.innerHTML = `<div class="step" style="color:var(--md-sys-color-error)">Error reading file.</div>`; };
+        reader.onload = async (e) => {
+            const content = e.target.result;
+            const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+            try {
+                log.innerHTML = `<div class="step">Fetching existing file info...</div>`;
+                
+                // 1. Get existing file SHA (required by GitHub to update)
+                let fileSha = null;
+                const getRes = await fetch(`https://api.github.com/repos/${githubOwner}/${activeUpdateRepo}/contents/index.html`, {
+                    headers: { 'Authorization': `token ${token}`, 'X-GitHub-Api-Version': '2022-11-28' }
+                });
+                if (getRes.ok) {
+                    fileSha = (await getRes.json()).sha;
+                }
+
+                // 2. Push Update
+                log.innerHTML = `<div class="step">Uploading new index.html...</div>`;
+                const putBody = { message: "Updated via Flash Suite", content: base64Content };
+                if (fileSha) putBody.sha = fileSha; // Add SHA if overwriting
+
+                const putRes = await fetch(`https://api.github.com/repos/${githubOwner}/${activeUpdateRepo}/contents/index.html`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json', 'X-GitHub-Api-Version': '2022-11-28' },
+                    body: JSON.stringify(putBody)
+                });
+                if (!putRes.ok) throw new Error("Failed to upload update.");
+
+                // 3. Handle Build Polling
+                if (activeUpdateHasPages) {
+                    log.innerHTML = `<div class="step">File uploaded! Waiting for GitHub build... <span id="updateTimer" style="margin-left:5px; font-weight:bold; color:var(--md-sys-color-primary);">0s</span></div>`;
+                    
+                    let secondsElapsed = 0;
+                    const timerInterval = setInterval(() => {
+                        secondsElapsed++;
+                        const timerEl = document.getElementById('updateTimer');
+                        if (timerEl) timerEl.textContent = `${secondsElapsed}s`;
+                    }, 1000);
+
+                    let isLive = false; let attempts = 0;
+                    while (!isLive && attempts < 30) {
+                        await sleep(3000); attempts++;
+                        try {
+                            const buildRes = await fetch(`https://api.github.com/repos/${githubOwner}/${activeUpdateRepo}/pages/builds/latest`, {
+                                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
+                            });
+                            if (buildRes.ok) {
+                                const buildData = await buildRes.json();
+                                if (buildData.status === 'built') isLive = true;
+                                else if (buildData.status === 'errored') { clearInterval(timerInterval); throw new Error("Build errored on GitHub."); }
+                            }
+                        } catch (pollErr) { if (pollErr.message.includes("errored")) throw pollErr; }
+                    }
+                    clearInterval(timerInterval);
+                    
+                    const siteUrl = encodeURI(`https://${githubOwner}.github.io/${activeUpdateRepo}/`);
+                    log.innerHTML = `
+                        <div class="success-box">
+                            <h3 style="margin:0 0 4px 0; font-weight:500; color:var(--md-sys-color-on-surface);">Site Updated Successfully</h3>
+                            <p style="font-size: 13px; margin: 0; color:var(--md-sys-color-on-surface-variant);">The changes are now live on your website.</p>
+                            <a href="${siteUrl}" class="success-link" target="_blank">Open Updated Website</a>
+                        </div>
+                    `;
+                } else {
+                    // Repo doesn't have Pages enabled yet, just show code update success
+                    log.innerHTML = `<div class="success-box">
+                        <h3 style="margin:0 0 4px 0; font-weight:500; color:var(--md-sys-color-on-surface);">Code Updated</h3>
+                        <p style="font-size: 13px; margin: 0; color:var(--md-sys-color-on-surface-variant);">File updated in repository (GitHub Pages is not active for this repo).</p>
+                    </div>`;
+                }
+
+            } catch (err) {
+                log.innerHTML = `<div class="step" style="color:var(--md-sys-color-error); margin-top:12px;">Error: ${err.message}</div>`;
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // --- OTHER MANAGER ACTIONS ---
+    async function renameRepo(oldName) {
+        const newName = prompt(`Enter new name for repository '${oldName}':`);
+        if (!newName || newName === oldName) return;
+
+        try {
+            const token = await secureGetToken();
+            const res = await fetch(`https://api.github.com/repos/${githubOwner}/${oldName}`, {
+                method: 'PATCH', headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            });
+            if (!res.ok) throw new Error("Rename failed.");
+            
+            const repoIndex = cachedRepos.findIndex(r => r.name === oldName);
+            if(repoIndex > -1) cachedRepos[repoIndex].name = newName;
+            filterRepos();
+            alert("Renamed successfully!");
+        } catch (err) { alert("Error: " + err.message); }
+    }
+
+    async function unpublishRepo(repoName) {
+        if (!confirm(`Are you sure you want to unpublish GitHub Pages for '${repoName}'? (The repository code will remain safe)`)) return;
+
+        try {
+            const token = await secureGetToken();
+            const res = await fetch(`https://api.github.com/repos/${githubOwner}/${repoName}/pages`, {
+                method: 'DELETE', headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' }
+            });
+            if (!res.ok) throw new Error("Unpublish failed.");
+            
+            const repoIndex = cachedRepos.findIndex(r => r.name === repoName);
+            if(repoIndex > -1) cachedRepos[repoIndex].has_pages = false;
+            filterRepos();
+            alert("Site unpublished.");
+        } catch (err) { alert("Error: " + err.message); }
+    }
+
+    async function deleteRepo(repoName) {
+        const confirmName = prompt(`⚠️ DANGER: To delete '${repoName}', type the exact repository name below:`);
+        if (confirmName !== repoName) {
+            if (confirmName !== null) alert("Name did not match. Deletion cancelled.");
+            return;
+        }
+
+        try {
+            const token = await secureGetToken();
+            const res = await fetch(`https://api.github.com/repos/${githubOwner}/${repoName}`, {
+                method: 'DELETE', headers: { 'Authorization': `token ${token}` }
+            });
+            if (!res.ok) throw new Error("Deletion failed. Does your token have 'delete_repo' scope?");
+            
+            cachedRepos = cachedRepos.filter(r => r.name !== repoName);
+            filterRepos();
+        } catch (err) { alert("Error: " + err.message); }
+    }
+</script>
+
+</body>
+</html>
